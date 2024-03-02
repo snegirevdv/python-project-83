@@ -5,6 +5,8 @@
     <title>{% block title %}Error: Block content not specified{% endblock %}</title>
 </head>
 <body>
-    {% block main %}Error: Block content not specified{% endblock %}
+  <header>{% include "layouts/header.html" %}</header>
+  <main>{% block main %}Error: Block content not specified{% endblock %}</main>
+  <footer>{% include "layouts/footer.html" %}</footer>
 </body>
 </html>
