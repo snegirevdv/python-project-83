@@ -10,4 +10,4 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 @app.route('/')
 def index():
-    return 'Good Soup'
+    return '<img src="https://media1.giphy.com/media/w4g8JSKEkCmpwfMiRU/giphy.gif">'
