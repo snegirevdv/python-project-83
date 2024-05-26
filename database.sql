@@ -1,5 +1,5 @@
 CREATE TABLE urls (
-    id BIGINT PRIMARY KEY,
-    name VARCHAR(255),
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP
 );
