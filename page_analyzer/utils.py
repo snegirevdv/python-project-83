@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import TypedDict
 from urllib.parse import urlparse
+from validators.url import url as url_validator
 
 from page_analyzer.database import Database
 
@@ -54,15 +55,7 @@ def find_entry_id(target_url: str) -> int:
 
 
 def validate_url(url: str) -> bool:
-    try:
-        url_object = urlparse(url)
-        return bool(
-            url_object.scheme
-            and url_object.netloc
-            and len(url_object.scheme + url_object.netloc) <= MAX_LEN
-        )
-    except ValueError:
-        return False
+    return url_validator(value=url) is True
 
 
 def normalize_url(url: str) -> str:
