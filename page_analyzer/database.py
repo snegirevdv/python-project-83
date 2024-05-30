@@ -1,74 +1,40 @@
+import os
+import dotenv
 import psycopg2
+
+dotenv.load_dotenv('.env.development')
 
 
 class Database:
-    def __init__(self, database_url):
-        print('Создание БД')
-        self.connection = psycopg2.connect(database_url)
+    def __enter__(self):
+        self.connection = psycopg2.connect(os.getenv("DATABASE_URL"))
         self.cursor = self.connection.cursor()
-        print('БД создана.')
+        return self
 
-    def execute_query(self, query_text):
-        try:
-            print('Выполняется запрос.')
-            self.cursor.execute(query_text)
-            if self.does_change(query_text):
-                self.connection.commit()
-            print('Запрос выполнен.')
-        except Exception as e:
-            print(f"PostgreSQL Error: {e}")
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is not None:
             self.connection.rollback()
-            raise
-
-    def execute_query_with_args(self, query_text, *args):
-        try:
-            print('Выполняется запрос')
-            self.cursor.execute(query_text, args)
-            if self.does_change(query_text):
-                self.connection.commit()
-            print('Запрос выполнен.')
-        except Exception as e:
-            print(f"PostgreSQL Error: {e}")
-            self.connection.rollback()
-            raise
-
-    def migrate(self, file_name):
-        print('Миграция начата.')
-        try:
-            with open(file_name) as file:
-                query_text = file.read()
-            self.execute_query(query_text)
-            print('Миграция завершена.')
-        except Exception as e:
-            print(f"Migration error: {e}")
-            self.connection.rollback()
-            raise
-
-    def fetch_description(self):
-        print('Fetching description')
-        return self.cursor.description
-
-    def fetch_all(self):
-        print('Fetching all rows')
-        return self.cursor.fetchall()
-
-    def fetch_one(self):
-        print('Fetching one row')
-        return self.cursor.fetchone()
-
-    def commit(self):
-        print('Committing transaction')
-        self.connection.commit()
-
-    def close(self):
-        print('Closing connection')
+        else:
+            self.connection.commit()
         self.cursor.close()
         self.connection.close()
 
-    @staticmethod
-    def does_change(query_text):
-        return (
-            "INSERT" in query_text
-            or "UPDATE" in query_text
-            or "DELETE" in query_text
-        )
+    def execute_query(self, query_text, *args):
+        if args:
+            self.cursor.execute(query_text, args)
+        else:
+            self.cursor.execute(query_text)
+
+    def execute_file(self, file_name):
+        with open(file_name) as file:
+            query_text = file.read()
+            self.execute_query(query_text)
+
+    def fetch_description(self):
+        return self.cursor.description
+
+    def fetch_all(self):
+        return self.cursor.fetchall()
+
+    def fetch_one(self):
+        return self.cursor.fetchone()
