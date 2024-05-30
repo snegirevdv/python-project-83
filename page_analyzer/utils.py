@@ -8,6 +8,7 @@ Entry = TypedDict("Entry", {"id": int, "name": str, "created_at": date})
 
 MAX_LEN = 252
 
+
 def migrate() -> None:
     with Database() as db:
         db.execute_file("database.sql")
