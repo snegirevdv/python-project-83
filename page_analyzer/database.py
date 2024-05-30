@@ -1,8 +1,9 @@
 import os
+
 import dotenv
 import psycopg2
 
-dotenv.load_dotenv('.env.development')
+dotenv.load_dotenv(".env.development")
 
 
 class Database:

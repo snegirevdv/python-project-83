@@ -1,10 +1,12 @@
 from datetime import date, datetime
 from typing import TypedDict
+from urllib.parse import urlparse
+
 from page_analyzer.database import Database
 
+Entry = TypedDict("Entry", {"id": int, "name": str, "created_at": date})
 
-Entry = TypedDict('Entry', {'id': int, 'name': str, 'created_at': date})
-
+MAX_LEN = 252
 
 def migrate() -> None:
     with Database() as db:
@@ -14,11 +16,7 @@ def migrate() -> None:
 def get_entry_from_row(row: tuple[int, str, datetime]) -> Entry:
     print(row)
     try:
-        return {
-            'id': row[0],
-            'name': row[1],
-            'created_at': row[2].date()
-        }
+        return {"id": row[0], "name": row[1], "created_at": row[2].date()}
     except Exception as e:
         raise ValueError(f"Ошибка при загрузке данных из БД: {e}")
 
@@ -44,22 +42,31 @@ def create_entry(url: str) -> int:
     raise Exception("Ошибка при создании записи в БД")
 
 
-def get_entry_id(target_url: str) -> int:
+def find_entry_id(target_url: str) -> int:
     entries = load_entries()
 
     for entry in entries:
-        if entry['name'] == target_url:
+        if entry["name"] == target_url:
             return entry["id"]
 
-    return create_entry(target_url)
+    return 0
 
 
-def validate_url(url: str) -> list[Entry]:
-    return []
+def validate_url(url: str) -> bool:
+    try:
+        url_object = urlparse(url)
+        return bool(
+            url_object.scheme
+            and url_object.netloc
+            and len(url_object.scheme + url_object.netloc) <= MAX_LEN
+        )
+    except ValueError:
+        return False
 
 
 def normalize_url(url: str) -> str:
-    return url
+    url_object = urlparse(url)
+    return url_object.scheme + '://' + url_object.netloc
 
 
 def get_url_info(id: int) -> Entry:
