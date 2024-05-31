@@ -3,13 +3,15 @@ import os
 import dotenv
 import psycopg2
 
+from psycopg2.extras import DictCursor
+
 dotenv.load_dotenv(".env.development")
 
 
 class Database:
     def __enter__(self):
         self.connection = psycopg2.connect(os.getenv("DATABASE_URL"))
-        self.cursor = self.connection.cursor()
+        self.cursor = self.connection.cursor(cursor_factory=DictCursor)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -30,9 +32,6 @@ class Database:
         with open(file_name) as file:
             query_text = file.read()
             self.execute_query(query_text)
-
-    def fetch_description(self):
-        return self.cursor.description
 
     def fetch_all(self):
         return self.cursor.fetchall()

@@ -1,4 +1,6 @@
+from datetime import datetime
 import os
+from urllib.parse import urlparse, urlunparse
 
 import dotenv
 from flask import (
@@ -10,68 +12,96 @@ from flask import (
     request,
     url_for,
 )
-from page_analyzer import utils
+from page_analyzer import consts, sql
+from page_analyzer.database import Database
+from validators.url import url as validate_url
 
 dotenv.load_dotenv(".env.development")
 
-app = Flask(__name__)
+app: Flask = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
-utils.migrate()
+with Database() as db:
+    db.execute_file(consts.MIGRATION)
 
 
 @app.get("/")
-def index():
-    messages = get_flashed_messages(with_categories=True)
-    url = request.args.get("url", "")
-    return render_template("index.html", url=url, messages=messages)
+def index() -> str:
+    messages: list = get_flashed_messages(with_categories=True)
+    url: str = request.args.get("url", "")
+
+    return render_template(
+        consts.INDEX_TEMPLATE,
+        url=url,
+        messages=messages
+    )
 
 
 @app.get("/urls/")
-def url_list():
-    url_list = utils.load_entries()
-    return render_template("url_list.html", url_list=url_list)
+def urls() -> str:
+    with Database() as db:
+        db.execute_query(sql.URLS)
+        entries = db.fetch_all()
 
-
-@app.post("/urls/")
-def url_post():
-    url = request.form.to_dict()["url"]
-
-    if not utils.validate_url(url):
-        flash("Некорректный URL", "danger")
-        return redirect(url_for("index", url=url))
-
-    try:
-        pure_url = utils.normalize_url(url)
-        url_id = utils.find_entry_id(pure_url)
-
-        if url_id:
-            flash("Страница уже существует", "info")
-        else:
-            url_id = utils.create_entry(pure_url)
-            flash("Страница успешно добавлена", "success")
-
-        return redirect(f"/urls/{url_id}/")
-
-    except Exception:
-        flash("Ошибка базы данных", "danger")
-        return redirect(url_for("index", url=url))
+    return render_template(
+        consts.URLS_TEMPLATE,
+        entries=entries
+    )
 
 
 @app.get("/urls/<id>/")
-def url_detail(id):
-    try:
-        messages = get_flashed_messages(with_categories=True)
-        url_info = utils.get_url_info(id)
+def detail(id: int):
+    messages: list = get_flashed_messages(with_categories=True)
+
+    with Database() as db:
+        db.execute_query(sql.DETAIL, id)
+        entry = db.fetch_one()
+
+    if entry:
         return render_template(
-            "url_detail.html",
-            url_info=url_info,
-            messages=messages,
+            consts.DETAIL_TEMPLATE,
+            entry=entry,
+            messages=messages
         )
 
-    except Exception:
-        flash("Ошибка базы данных", "danger")
-        return redirect(url_for("index"))
+    flash(consts.DOESNT_EXIST, consts.DANGER)
+    return redirect(url_for('index'))
+
+
+@app.post("/urls/")
+def urls_post():
+    url = request.form.to_dict()["url"]
+
+    if validate_url(url) is not True:
+        flash(consts.INVALID_URL, consts.DANGER)
+        return redirect(url_for("index", url=url))
+
+    parsed_url = urlparse(url)
+
+    pure_url = urlunparse(
+        (parsed_url.scheme, parsed_url.netloc, '', '', '', '')
+    )
+
+    with Database() as db:
+        db.execute_query(sql.FIND_ID, pure_url)
+        search_result = db.fetch_one()
+
+    if search_result:
+        url_id = search_result["id"]
+        flash(consts.ALREADY_EXISTS, consts.INFO)
+        return redirect(url_for('detail', id=url_id))
+
+    with Database() as db:
+        db.execute_query(sql.CREATE_ENTRY, url, datetime.now())
+        created_entry = db.fetch_one()
+
+    if created_entry:
+        url_id = created_entry["id"]
+        flash(consts.ADD_SUCCESS, consts.SUCCESS)
+        return redirect(url_for('detail', id=url_id))
+
+    flash(consts.ADD_FAILURE, consts.DANGER)
+    return redirect(url_for('index', url=url))
 
 
 if __name__ == "__main__":

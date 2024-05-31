@@ -15,11 +15,11 @@
             </tr>
           </thead>
           <tbody>
-            {% for url_info in url_list|reverse %}
+            {% for entry in entries|reverse %}
               <tr>
-                <td>{{ url_info.id }}</td>
+                <td>{{ entry.id }}</td>
                 <td>
-                  <a href="{{ url_for('url_detail', id=url_info.id) }}">{{ url_info.name }}</a>
+                  <a href="{{ url_for('detail', id=entry.id) }}">{{ entry.name }}</a>
                 </td>
                 <td>
                   <!-- добавить последнюю проверку -->
