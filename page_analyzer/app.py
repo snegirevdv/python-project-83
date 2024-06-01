@@ -12,6 +12,7 @@ from flask import (
     request,
     url_for,
 )
+import requests
 from page_analyzer import consts, sql
 from page_analyzer.database import Database
 from validators.url import url as validate_url
@@ -56,12 +57,15 @@ def detail(id: int):
     with Database() as db:
         db.execute_query(sql.DETAIL, id)
         entry = db.cursor.fetchone()
+        db.execute_query(sql.CHECKS, id)
+        checks = db.cursor.fetchall()
 
     if entry:
         return render_template(
             consts.DETAIL_TEMPLATE,
             entry=entry,
-            messages=messages
+            checks=checks,
+            messages=messages,
         )
 
     flash(consts.DOESNT_EXIST, consts.DANGER)
@@ -92,16 +96,31 @@ def urls_post():
         return redirect(url_for('detail', id=url_id))
 
     with Database() as db:
-        db.execute_query(sql.CREATE_ENTRY, pure_url, datetime.now())
-        created_entry = db.cursor.fetchone()
+        db.execute_query(sql.NEW_ENTRY, pure_url, datetime.now())
+        entry = db.cursor.fetchone()
 
-    if created_entry:
-        url_id = created_entry["id"]
+    if entry:
+        url_id = entry["id"]
         flash(consts.ADD_SUCCESS, consts.SUCCESS)
         return redirect(url_for('detail', id=url_id))
 
     flash(consts.ADD_FAILURE, consts.DANGER)
     return redirect(url_for('index', url=url))
+
+
+@app.post('/urls/<id>/checks/')
+def checks_post(id):
+    with Database() as db:
+        db.execute_query(sql.NEW_CHECK, id, datetime.now())
+        db.execute_query(sql.FIND_URL, id)
+    #     entry = db.cursor.fetchone()
+
+    # if entry:
+    #     url = entry["name"]
+    #     entry["status_code"] = requests.get(url).status_code
+
+    flash(consts.CHECK_SUCCESS, consts.SUCCESS)
+    return redirect(url_for('detail', id=id))
 
 
 if __name__ == "__main__":

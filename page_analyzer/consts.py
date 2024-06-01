@@ -12,6 +12,7 @@ ALREADY_EXISTS = "Страница уже существует"
 ADD_SUCCESS = "Страница успешно добавлена"
 ADD_FAILURE = "Ошибка при добавлении страницы"
 DOESNT_EXIST = "Такой страницы не существует"
+CHECK_SUCCESS = "Страница успешно проверена"
 
 # MESSAGE STATUSES
 DANGER = "danger"

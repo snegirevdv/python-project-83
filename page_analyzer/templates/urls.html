@@ -22,7 +22,9 @@
                   <a href="{{ url_for('detail', id=entry.id) }}">{{ entry.name }}</a>
                 </td>
                 <td>
-                  <!-- добавить последнюю проверку -->
+                  {% if entry.last_check_date %}
+                    {{ entry.last_check_date.strftime('%Y-%m-%d') }}
+                  {% endif %}
                 </td>
                 <td>
                   <!-- добавить код ответа -->

@@ -42,7 +42,16 @@
             </tr>
           </thead>
           <tbody>
-            <!-- цикл -->
+            {% for check in checks|reverse  %}
+              <tr>
+                <td>{{ check.id }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{{ check.created_at.strftime('%Y-%m-%d') }}</td>
+              </tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
