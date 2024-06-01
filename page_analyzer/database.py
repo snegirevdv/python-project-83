@@ -9,6 +9,8 @@ dotenv.load_dotenv(".env.development")
 
 
 class Database:
+    exceptions = (psycopg2.DatabaseError, psycopg2.OperationalError)
+
     def __enter__(self):
         self.connection = psycopg2.connect(os.getenv("DATABASE_URL"))
         self.cursor = self.connection.cursor(cursor_factory=DictCursor)

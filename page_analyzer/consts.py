@@ -13,6 +13,8 @@ ADD_SUCCESS = "Страница успешно добавлена"
 ADD_FAILURE = "Ошибка при добавлении страницы"
 DOESNT_EXIST = "Такой страницы не существует"
 CHECK_SUCCESS = "Страница успешно проверена"
+CHECK_FAILURE = "Ошибка при проверке"
+DB_ERROR = "Ошибка при обращении к базе данных"
 
 # MESSAGE STATUSES
 DANGER = "danger"

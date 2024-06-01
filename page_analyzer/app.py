@@ -1,7 +1,8 @@
 from datetime import datetime
 import os
-from urllib.parse import urlparse, urlunparse
+from urllib import parse
 
+from bs4 import BeautifulSoup
 import dotenv
 from flask import (
     Flask,
@@ -80,9 +81,9 @@ def urls_post():
         flash(consts.INVALID_URL, consts.DANGER)
         return redirect(url_for("index", url=url))
 
-    parsed_url = urlparse(url)
+    parsed_url = parse.urlparse(url)
 
-    pure_url = urlunparse(
+    pure_url = parse.urlunparse(
         (parsed_url.scheme, parsed_url.netloc, '', '', '', '')
     )
 
@@ -111,15 +112,54 @@ def urls_post():
 @app.post('/urls/<id>/checks/')
 def checks_post(id):
     with Database() as db:
-        db.execute_query(sql.NEW_CHECK, id, datetime.now())
         db.execute_query(sql.FIND_URL, id)
-    #     entry = db.cursor.fetchone()
 
-    # if entry:
-    #     url = entry["name"]
-    #     entry["status_code"] = requests.get(url).status_code
+        if entry := db.cursor.fetchone():
+            try:
+                url = entry["name"]
+                response = requests.get(url)
+                response.raise_for_status()
+                status_code = response.status_code
 
-    flash(consts.CHECK_SUCCESS, consts.SUCCESS)
+                parser = BeautifulSoup(response.content, 'html.parser')
+
+                title_tag = parser.find('title')
+                title = title_tag.text if title_tag else ''
+
+                h1_tag = parser.find('h1')
+                h1 = h1_tag.text if h1_tag else ''
+
+                description_tag = parser.find(
+                    'meta',
+                    attrs={'name': 'description'}
+                )
+                description = (
+                    description_tag.get('content', '')
+                    if description_tag
+                    else ''
+                )
+
+                db.execute_query(
+                    sql.NEW_CHECK,
+                    id,
+                    datetime.now(),
+                    status_code,
+                    title,
+                    h1,
+                    description,
+                )
+
+                flash(consts.CHECK_SUCCESS, consts.SUCCESS)
+
+            except requests.exceptions.HTTPError:
+                flash(consts.CHECK_FAILURE, consts.DANGER)
+
+            except db.exceptions:
+                flash(consts.DB_ERROR, consts.DANGER)
+
+        else:
+            flash(consts.DB_ERROR, consts.DANGER)
+
     return redirect(url_for('detail', id=id))
 
 

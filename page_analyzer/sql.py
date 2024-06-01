@@ -3,7 +3,14 @@ SELECT
     urls.id AS id,
     urls.name AS name,
     urls.created_at AS created_at,
-    MAX(url_checks.created_at) AS last_check_date
+    MAX(url_checks.created_at) AS last_check_date,
+    (
+        SELECT status_code
+        FROM url_checks
+        WHERE url_checks.url_id = urls.id
+        ORDER BY id DESC
+        LIMIT 1
+    ) AS last_check_status_code
 FROM
     urls
 LEFT JOIN
@@ -52,7 +59,11 @@ LIMIT
 CHECKS = """
 SELECT
     id,
-    created_at
+    created_at,
+    status_code,
+    h1,
+    title,
+    description
 FROM
     url_checks
 WHERE
@@ -72,9 +83,9 @@ RETURNING
 
 NEW_CHECK = """
 INSERT INTO
-    url_checks (url_id, created_at)
+    url_checks (url_id, created_at, status_code, title, h1, description)
 VALUES
-    (%s, %s)
+    (%s, %s, %s, %s, %s, %s)
 RETURNING
     id;
 """
