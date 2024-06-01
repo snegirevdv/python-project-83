@@ -151,7 +151,10 @@ def checks_post(id):
 
                 flash(consts.CHECK_SUCCESS, consts.SUCCESS)
 
-            except requests.exceptions.HTTPError:
+            except (
+                requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError,
+            ):
                 flash(consts.CHECK_FAILURE, consts.DANGER)
 
             except db.exceptions:
