@@ -32,9 +32,3 @@ class Database:
         with open(file_name) as file:
             query_text = file.read()
             self.execute_query(query_text)
-
-    def fetch_all(self):
-        return self.cursor.fetchall()
-
-    def fetch_one(self):
-        return self.cursor.fetchone()

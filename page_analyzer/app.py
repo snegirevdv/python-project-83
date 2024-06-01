@@ -41,7 +41,7 @@ def index() -> str:
 def urls() -> str:
     with Database() as db:
         db.execute_query(sql.URLS)
-        entries = db.fetch_all()
+        entries = db.cursor.fetchall()
 
     return render_template(
         consts.URLS_TEMPLATE,
@@ -55,7 +55,7 @@ def detail(id: int):
 
     with Database() as db:
         db.execute_query(sql.DETAIL, id)
-        entry = db.fetch_one()
+        entry = db.cursor.fetchone()
 
     if entry:
         return render_template(
@@ -84,7 +84,7 @@ def urls_post():
 
     with Database() as db:
         db.execute_query(sql.FIND_ID, pure_url)
-        search_result = db.fetch_one()
+        search_result = db.cursor.fetchone()
 
     if search_result:
         url_id = search_result["id"]
@@ -92,8 +92,8 @@ def urls_post():
         return redirect(url_for('detail', id=url_id))
 
     with Database() as db:
-        db.execute_query(sql.CREATE_ENTRY, url, datetime.now())
-        created_entry = db.fetch_one()
+        db.execute_query(sql.CREATE_ENTRY, pure_url, datetime.now())
+        created_entry = db.cursor.fetchone()
 
     if created_entry:
         url_id = created_entry["id"]
