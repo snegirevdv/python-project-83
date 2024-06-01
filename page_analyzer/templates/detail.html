@@ -24,8 +24,7 @@
       </div>
 
       <h2 class="mt-5 mb-3">Проверки</h2>
-      <form method="post" action="/urls/{{ entry.id }}/checks">
-        <!-- поменять на именованный маршрут -->
+      <form method="post" action="url_for('checks_post', id=entry.id)">
         <input type="submit" class="btn btn-primary" value="Запустить проверку" />
       </form>
 
@@ -48,7 +47,7 @@
                 <td>{{ check.status_code }}</td>
                 <td>{{ check.h1 }}</td>
                 <td>{{ check.title }}</td>
-                <td>{{ check.description }}</td>
+                <td>{{ check.description|truncate(200) }}</td>
                 <td>{{ check.created_at.strftime('%Y-%m-%d') }}</td>
               </tr>
             {% endfor %}
