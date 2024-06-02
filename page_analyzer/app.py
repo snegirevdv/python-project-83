@@ -51,7 +51,7 @@ def urls() -> str:
     )
 
 
-@app.get("/urls/<id>/")
+@app.get("/urls/<int:id>/")
 def detail(id: int):
     messages: list = get_flashed_messages(with_categories=True)
 
@@ -109,7 +109,7 @@ def urls_post():
     return redirect(url_for('index', url=url))
 
 
-@app.post('/urls/<id>/checks/')
+@app.post('/urls/<int:id>/checks/')
 def checks_post(id):
     with Database() as db:
         db.execute_query(sql.FIND_URL, id)
