@@ -18,7 +18,7 @@ from page_analyzer import consts, sql
 from page_analyzer.database import Database
 from validators.url import url as validate_url
 
-dotenv.load_dotenv(".env.development")
+dotenv.load_dotenv()
 
 app: Flask = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
