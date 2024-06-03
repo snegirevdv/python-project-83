@@ -23,9 +23,6 @@ dotenv.load_dotenv()
 app: Flask = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
-with Database() as db:
-    db.execute_file(consts.MIGRATION)
-
 
 @app.get("/")
 def index() -> str:
