@@ -81,7 +81,7 @@ def urls_post():
             url=url,
             messages=get_flashed_messages(with_categories=True),
             redirect_to=url_for('urls')
-        )
+        ), 422
 
     parsed_url = parse.urlparse(url)
 
