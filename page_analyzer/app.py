@@ -36,7 +36,7 @@ def index() -> str:
     )
 
 
-@app.get("/urls/")
+@app.get("/urls")
 def urls() -> str:
     with Database() as db:
         db.execute_query(sql.URLS)
@@ -48,7 +48,7 @@ def urls() -> str:
     )
 
 
-@app.get("/urls/<int:id>/")
+@app.get("/urls/<int:id>")
 def detail(id: int):
     messages: list = get_flashed_messages(with_categories=True)
 
@@ -70,13 +70,18 @@ def detail(id: int):
     return redirect(url_for('index'))
 
 
-@app.post("/urls/")
+@app.post("/urls")
 def urls_post():
     url = request.form.to_dict()["url"]
 
     if validate_url(url, simple_host=True) is not True:
         flash(consts.INVALID_URL, consts.DANGER)
-        return redirect(url_for("index", url=url))
+        return render_template(
+            consts.INDEX_TEMPLATE,
+            url=url,
+            messages=get_flashed_messages(with_categories=True),
+            redirect_to=url_for('urls')
+        )
 
     parsed_url = parse.urlparse(url)
 
@@ -106,7 +111,7 @@ def urls_post():
     return redirect(url_for('index', url=url))
 
 
-@app.post('/urls/<int:id>/checks/')
+@app.post('/urls/<int:id>/checks')
 def checks_post(id):
     with Database() as db:
         db.execute_query(sql.FIND_URL, id)
@@ -164,4 +169,4 @@ def checks_post(id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
