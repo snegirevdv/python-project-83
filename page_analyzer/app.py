@@ -74,7 +74,7 @@ def detail(id: int):
 def urls_post():
     url = request.form.to_dict()["url"]
 
-    if validate_url(url) is not True:
+    if validate_url(url, simple_host=True) is not True:
         flash(consts.INVALID_URL, consts.DANGER)
         return redirect(url_for("index", url=url))
 
